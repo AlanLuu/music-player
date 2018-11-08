@@ -9,7 +9,6 @@ import android.os.Message;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -51,16 +50,13 @@ public class MusicActivity extends AppCompatActivity {
 
         playButton = findViewById(R.id.playButton);
         playButton.setBackgroundResource(R.drawable.stop);
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!player.isPlaying()) {
-                    player.start();
-                    playButton.setBackgroundResource(R.drawable.stop);
-                } else {
-                    player.pause();
-                    playButton.setBackgroundResource(R.drawable.play);
-                }
+        playButton.setOnClickListener(view -> {
+            if (!player.isPlaying()) {
+                player.start();
+                playButton.setBackgroundResource(R.drawable.stop);
+            } else {
+                player.pause();
+                playButton.setBackgroundResource(R.drawable.play);
             }
         });
 
@@ -113,24 +109,21 @@ public class MusicActivity extends AppCompatActivity {
         positionBar.setMax(totalTime);
         player.start();
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (player != null) {
-                    try {
-                        Message message = new Message();
-                        message.what = player.getCurrentPosition();
-                        handler.sendMessage(message);
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {}
-                }
+        new Thread(() -> {
+            while (player != null) {
+                try {
+                    Message message = new Message();
+                    message.what = player.getCurrentPosition();
+                    handler.sendMessage(message);
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {}
             }
         }).start();
     }
 
     @Override
-    public void onDestroy() {
-        player.stop();
+    protected void onDestroy() {
+        player.reset();
         super.onDestroy();
     }
 

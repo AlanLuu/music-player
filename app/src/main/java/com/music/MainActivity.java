@@ -9,19 +9,17 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
     private ArrayList<Song> songs;
-    private ListView songView;
 
     public static final int REQUEST_PERMISSION = 1;
 
@@ -32,8 +30,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M &&
                 checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-
-            Log.d("permission", "permission denied to SEND_SMS - requesting it");
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
             return;
         }
@@ -41,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void start() {
-        songView = findViewById(R.id.song_list);
+        ListView songView = findViewById(R.id.song_list);
         songs = new ArrayList<>();
         getSongList();
         Collections.sort(songs);
@@ -49,18 +45,21 @@ public class MainActivity extends AppCompatActivity {
         SongAdapter adapter = new SongAdapter(this, songs);
         songView.setAdapter(adapter);
 
-        songView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                String songName = songs.get(position).getTitle();
-                String artistName = songs.get(position).getArtist();
-                long songId = songs.get(position).getId();
+        songView.setOnItemClickListener((adapterView, view, position, id) -> {
+            String songName = songs.get(position).getTitle();
+            String artistName = songs.get(position).getArtist();
+            long songId = songs.get(position).getId();
 
-                Intent intent = new Intent(getBaseContext(), MusicActivity.class);
-                intent.putExtra("Song",artistName + " - " + songName);
-                intent.putExtra("Id", songId + "");
-                startActivity(intent);
-            }
+            Intent intent = new Intent(getBaseContext(), MusicActivity.class);
+            intent.putExtra("Song", artistName + " - " + songName);
+            intent.putExtra("Id", songId + "");
+            startActivity(intent);
+        });
+
+        songView.setOnItemLongClickListener((adapterView, view, position, id) -> {
+            Song song = songs.get(position);
+            Toast.makeText(getApplicationContext(), song.getArtist() + " - " + song.getTitle(), Toast.LENGTH_SHORT).show();
+            return true;
         });
     }
 
@@ -69,8 +68,12 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //Permission granted, so continue with searching the device for songs.
+                //Permission granted
                 start();
+            } else {
+                //Permission not granted
+                Toast.makeText(getApplicationContext(), "You must enable the storage permission for this app to work.", Toast.LENGTH_LONG).show();
+                finish();
             }
         }
     }
@@ -98,6 +101,9 @@ public class MainActivity extends AppCompatActivity {
             } while (musicCursor.moveToNext());
 
             musicCursor.close();
+
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) actionBar.setTitle(actionBar.getTitle() + " - " + songs.size() + " songs");
         }
     }
 }

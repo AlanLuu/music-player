@@ -37,16 +37,16 @@ public final class Song implements Comparable<Song> {
     public boolean equals(Object obj) {
         if (!(obj instanceof Song)) return false;
         Song other = (Song) obj;
-        return compareTo(other) == 0;
+        return compareTo(other) == 0 && artist.equals(other.artist) && album.equals(other.album);
     }
 
     @Override
     public int compareTo(Song song) {
-        return title.compareTo(song.title);
+        return title.compareToIgnoreCase(song.title);
     }
 
     @Override
     public String toString() {
-        return artist + " - " + title + "\n\t" + album;
+        return title + " " + artist + " " + album;
     }
 }

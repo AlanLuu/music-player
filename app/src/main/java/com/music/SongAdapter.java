@@ -1,6 +1,5 @@
 package com.music;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +15,7 @@ public class SongAdapter extends BaseAdapter {
     private LayoutInflater songInf;
 
     public SongAdapter(Context context, ArrayList<Song> songs) {
-        this.songs = new ArrayList<>(songs);
+        this.songs = songs;
         songInf = LayoutInflater.from(context);
     }
 
@@ -37,7 +36,6 @@ public class SongAdapter extends BaseAdapter {
 
     @Override
     public View getView(int pos, View view, ViewGroup viewGroup) {
-        @SuppressLint("ViewHolder")
         LinearLayout songLayout = (LinearLayout) songInf.inflate(R.layout.song, viewGroup, false);
         TextView songView = songLayout.findViewById(R.id.song_title);
         TextView artistView = songLayout.findViewById(R.id.song_artist);
