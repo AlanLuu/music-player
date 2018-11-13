@@ -36,6 +36,21 @@ public class MainActivity extends AppCompatActivity {
         start();
     }
 
+    @Override
+    public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //Permission granted
+                start();
+            } else {
+                //Permission not granted
+                Toast.makeText(getApplicationContext(), "You must enable the storage permission for this app to work.", Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
+    }
+
     private void start() {
         ListView songView = findViewById(R.id.song_list);
         songs = new ArrayList<>();
@@ -63,22 +78,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //Permission granted
-                start();
-            } else {
-                //Permission not granted
-                Toast.makeText(getApplicationContext(), "You must enable the storage permission for this app to work.", Toast.LENGTH_LONG).show();
-                finish();
-            }
-        }
-    }
-
-    public void getSongList() {
+    private void getSongList() {
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
@@ -101,9 +101,10 @@ public class MainActivity extends AppCompatActivity {
             } while (musicCursor.moveToNext());
 
             musicCursor.close();
-
-            ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null) actionBar.setTitle(actionBar.getTitle() + " - " + songs.size() + " songs");
         }
+
+        ActionBar actionBar = getSupportActionBar();
+        int size = songs.size();
+        if (actionBar != null) actionBar.setTitle(actionBar.getTitle() + " - " + size + " " + (size == 1 ? "song" : "songs"));
     }
 }
