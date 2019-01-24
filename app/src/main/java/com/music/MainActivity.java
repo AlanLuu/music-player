@@ -1,8 +1,8 @@
 package com.music;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ContentResolver;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -19,9 +19,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
-    private ArrayList<Song> songs;
-
-    public static final int REQUEST_PERMISSION = 1;
+    private ArrayList<Song> songs = new ArrayList<>();
+    private final int REQUEST_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,27 +52,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void start() {
         ListView songView = findViewById(R.id.song_list);
-        songs = new ArrayList<>();
         getSongList();
         Collections.sort(songs);
 
         SongAdapter adapter = new SongAdapter(this, songs);
         songView.setAdapter(adapter);
 
-        songView.setOnItemClickListener((adapterView, view, position, id) -> {
-            String songName = songs.get(position).getTitle();
-            String artistName = songs.get(position).getArtist();
-            long songId = songs.get(position).getId();
-
-            Intent intent = new Intent(getBaseContext(), MusicActivity.class);
-            intent.putExtra("Song", artistName + " - " + songName);
-            intent.putExtra("Id", songId + "");
-            startActivity(intent);
-        });
+        songView.setOnItemClickListener((adapterView, view, position, id) ->
+                songs.get(position).play(getApplicationContext(), getActivity()));
 
         songView.setOnItemLongClickListener((adapterView, view, position, id) -> {
-            Song song = songs.get(position);
-            Toast.makeText(getApplicationContext(), song.getArtist() + " - " + song.getTitle(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), songs.get(position) + "", Toast.LENGTH_SHORT).show();
             return true;
         });
     }
@@ -97,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
                 String title = musicCursor.getString(titleColumn);
                 String artist = musicCursor.getString(artistColumn);
                 String album = musicCursor.getString(albumColumn);
-                songs.add(new Song(id, title, artist, album));
+                songs.add(new Song(title, artist, album, id));
             } while (musicCursor.moveToNext());
 
             musicCursor.close();
@@ -106,5 +95,9 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         int size = songs.size();
         if (actionBar != null) actionBar.setTitle(actionBar.getTitle() + " - " + size + " " + (size == 1 ? "song" : "songs"));
+    }
+
+    private Activity getActivity() {
+        return (Activity) this;
     }
 }

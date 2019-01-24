@@ -1,12 +1,16 @@
 package com.music;
 
-public final class Song implements Comparable<Song> {
-    private long id;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+
+public class Song implements Playable, Comparable<Song> {
     private String title;
     private String artist;
     private String album;
+    private long id;
 
-    public Song(long id, String title, String artist, String album) {
+    public Song(String title, String artist, String album, long id) {
         this.id = id;
         this.title = title;
         this.artist = artist;
@@ -14,11 +18,7 @@ public final class Song implements Comparable<Song> {
     }
 
     public Song(String title, String artist, String album) {
-        this(0, title, artist, album);
-    }
-
-    public long getId() {
-        return id;
+        this(title, artist, album, 0);
     }
 
     public String getTitle() {
@@ -33,11 +33,16 @@ public final class Song implements Comparable<Song> {
         return album;
     }
 
+    public long getId() {
+        return id;
+    }
+
     @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof Song)) return false;
-        Song other = (Song) obj;
-        return compareTo(other) == 0 && artist.equals(other.artist) && album.equals(other.album);
+    public void play(Context context, Activity activity) {
+        Intent intent = new Intent(context, MusicActivity.class);
+        intent.putExtra("Song", artist + " - " + title);
+        intent.putExtra("Id", id + "");
+        activity.startActivity(intent);
     }
 
     @Override
@@ -47,6 +52,6 @@ public final class Song implements Comparable<Song> {
 
     @Override
     public String toString() {
-        return title + " " + artist + " " + album;
+        return artist + " - " + title + " - " + album + " \nID: " + id;
     }
 }

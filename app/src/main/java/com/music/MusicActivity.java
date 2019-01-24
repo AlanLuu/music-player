@@ -2,6 +2,7 @@ package com.music;
 
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
+import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
@@ -16,14 +17,14 @@ import android.widget.TextView;
 import java.io.IOException;
 
 public class MusicActivity extends AppCompatActivity {
-    private Button playButton;
-    private SeekBar positionBar, volumeBar;
+    private Button playButton, repeat;
+    private SeekBar positionBar;
     private TextView elapsed, remaining;
     private int totalTime;
-    private long songId;
+
     private MediaPlayer player;
 
-    @SuppressLint("HandlerLeak")
+    @SuppressLint({"HandlerLeak", "SetTextI18n"})
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message message) {
@@ -38,6 +39,7 @@ public class MusicActivity extends AppCompatActivity {
         }
     };
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +47,14 @@ public class MusicActivity extends AppCompatActivity {
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
-            actionBar.setTitle(getIntent().getStringExtra("Song"));
+            String title = getIntent().getStringExtra("Song");
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                TextView textView = findViewById(R.id.song_info);
+                textView.setText(title);
+                actionBar.setTitle("");
+            } else {
+                actionBar.setTitle(title);
+            }
         }
 
         playButton = findViewById(R.id.playButton);
@@ -58,6 +67,14 @@ public class MusicActivity extends AppCompatActivity {
                 player.pause();
                 playButton.setBackgroundResource(R.drawable.play);
             }
+        });
+
+        repeat = findViewById(R.id.repeat);
+        repeat.setText("Repeat off");
+        repeat.setOnClickListener(view -> {
+            boolean isRepeating = !player.isLooping();
+            player.setLooping(isRepeating);
+            repeat.setText(isRepeating ? "Repeat on" : "Repeat off");
         });
 
         elapsed = findViewById(R.id.elapsed);
@@ -74,28 +91,15 @@ public class MusicActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        volumeBar = findViewById(R.id.volumeBar);
-        volumeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float volumeNum = progress / 100f;
-                player.setVolume(volumeNum, volumeNum);
+            public void onStartTrackingTouch(SeekBar seekBar) {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
         });
 
-        songId = Long.parseLong(getIntent().getStringExtra("Id"));
+        long songId = Long.parseLong(getIntent().getStringExtra("Id"));
 
         player = new MediaPlayer();
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -103,7 +107,8 @@ public class MusicActivity extends AppCompatActivity {
             player.setDataSource(getApplicationContext(), ContentUris.withAppendedId(
                     android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId));
             player.prepare();
-        } catch (IOException e) {}
+        } catch (IOException ignore) {
+        }
 
         totalTime = player.getDuration();
         positionBar.setMax(totalTime);
@@ -116,7 +121,8 @@ public class MusicActivity extends AppCompatActivity {
                     message.what = player.getCurrentPosition();
                     handler.sendMessage(message);
                     Thread.sleep(1000);
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException ignore) {
+                }
             }
         }).start();
     }
