@@ -8,13 +8,13 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class SongAdapter extends BaseAdapter {
-    private ArrayList<Song> songs;
+    private List<Song> songs;
     private LayoutInflater songInf;
 
-    public SongAdapter(Context context, ArrayList<Song> songs) {
+    SongAdapter(Context context, List<Song> songs) {
         this.songs = songs;
         songInf = LayoutInflater.from(context);
     }

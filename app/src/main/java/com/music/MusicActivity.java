@@ -99,13 +99,12 @@ public class MusicActivity extends AppCompatActivity {
             }
         });
 
-        long songId = Long.parseLong(getIntent().getStringExtra("Id"));
-
         player = new MediaPlayer();
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             player.setDataSource(getApplicationContext(), ContentUris.withAppendedId(
-                    android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId));
+                    android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    Integer.parseInt(getIntent().getStringExtra("Id"))));
             player.prepare();
         } catch (IOException ignore) {
         }

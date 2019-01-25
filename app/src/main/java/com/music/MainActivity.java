@@ -1,8 +1,8 @@
 package com.music;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -12,15 +12,22 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    private ArrayList<Song> songs = new ArrayList<>();
-    private final int REQUEST_PERMISSION = 1;
+    private Playlist songs = new Playlist();
+    private Map<String, Map<Integer, String>> map = new LinkedHashMap<>();
+
+    private static final int REQUEST_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,16 +57,69 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        map.put("Sort", new LinkedHashMap<Integer, String>() {{
+            String[] items = {
+                    "By name ascending",
+                    "By name descending",
+                    "Randomly",
+            };
+            for (int i = 0; i < items.length; i++) {
+                put(i, items[i]);
+            }
+        }});
+
+        List<SubMenu> menus = new ArrayList<>();
+        int i = 0;
+        for (Map.Entry<String, Map<Integer, String>> entry : map.entrySet()) {
+            menus.add(menu.addSubMenu(entry.getKey()));
+            for (Map.Entry<Integer, String> innerEntry : entry.getValue().entrySet()) {
+                menus.get(i).add(Menu.NONE, innerEntry.getKey(), Menu.NONE, innerEntry.getValue());
+            }
+            i++;
+        }
+
+        menu.add(Menu.NONE, 3, Menu.NONE, "About this app");
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (!item.hasSubMenu()) {
+            switch (item.getItemId()) {
+                case 0:
+                    songs.sort();
+                    break;
+                case 1:
+                    songs.sortReverse();
+                    break;
+                case 2:
+                    songs.shuffle();
+                    break;
+                case 3:
+                    startActivity(new Intent(this, AppInfoActivity.class));
+                    break;
+            }
+            ((ListView) findViewById(R.id.song_list)).setAdapter(new SongAdapter(this, songs.getPlaylist()));
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void start() {
         ListView songView = findViewById(R.id.song_list);
         getSongList();
-        Collections.sort(songs);
+        songs.sort();
 
-        SongAdapter adapter = new SongAdapter(this, songs);
+        SongAdapter adapter = new SongAdapter(this, songs.getPlaylist());
         songView.setAdapter(adapter);
 
-        songView.setOnItemClickListener((adapterView, view, position, id) ->
-                songs.get(position).play(getApplicationContext(), getActivity()));
+        songView.setOnItemClickListener((adapterView, view, position, id) -> {
+            Intent intent = new Intent(getApplicationContext(), MusicActivity.class);
+            intent.putExtra("Song", songs.get(position).getArtist() + " - " + songs.get(position).getTitle());
+            intent.putExtra("Id", songs.get(position).getId() + "");
+            startActivity(intent);
+        });
 
         songView.setOnItemLongClickListener((adapterView, view, position, id) -> {
             Toast.makeText(getApplicationContext(), songs.get(position) + "", Toast.LENGTH_SHORT).show();
@@ -82,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
             int albumColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
 
             do {
-                long id = musicCursor.getLong(idColumn);
+                int id = musicCursor.getInt(idColumn);
                 String title = musicCursor.getString(titleColumn);
                 String artist = musicCursor.getString(artistColumn);
                 String album = musicCursor.getString(albumColumn);
@@ -95,9 +155,5 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         int size = songs.size();
         if (actionBar != null) actionBar.setTitle(actionBar.getTitle() + " - " + size + " " + (size == 1 ? "song" : "songs"));
-    }
-
-    private Activity getActivity() {
-        return (Activity) this;
     }
 }

@@ -1,57 +1,44 @@
 package com.music;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
+import android.support.annotation.NonNull;
 
-public class Song implements Playable, Comparable<Song> {
+public class Song implements Comparable<Song> {
     private String title;
     private String artist;
     private String album;
-    private long id;
+    private int id;
 
-    public Song(String title, String artist, String album, long id) {
-        this.id = id;
+    Song(String title, String artist, String album, int id) {
         this.title = title;
         this.artist = artist;
         this.album = album;
+        this.id = id;
     }
 
-    public Song(String title, String artist, String album) {
-        this(title, artist, album, 0);
-    }
-
-    public String getTitle() {
+    String getTitle() {
         return title;
     }
 
-    public String getArtist() {
+    String getArtist() {
         return artist;
     }
 
-    public String getAlbum() {
+    String getAlbum() {
         return album;
     }
 
-    public long getId() {
+    int getId() {
         return id;
     }
 
     @Override
-    public void play(Context context, Activity activity) {
-        Intent intent = new Intent(context, MusicActivity.class);
-        intent.putExtra("Song", artist + " - " + title);
-        intent.putExtra("Id", id + "");
-        activity.startActivity(intent);
+    public int compareTo(Song other) {
+        return title.compareToIgnoreCase(other.title);
     }
 
-    @Override
-    public int compareTo(Song song) {
-        return title.compareToIgnoreCase(song.title);
-    }
-
+    @NonNull
     @Override
     public String toString() {
-        return artist + " - " + title + " - " + album + " \nID: " + id;
+        return artist + " - " + title + " - " + album + " \nID: 0x" + Integer.toHexString(id).toUpperCase();
     }
 }

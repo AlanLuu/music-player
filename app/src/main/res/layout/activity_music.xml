@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:contentDescription="Album art"
+        android:contentDescription="@string/placeholder"
         android:src="@drawable/image" />
 
     <SeekBar
@@ -38,15 +38,15 @@
             android:id="@+id/elapsed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0:00"
-            android:layout_marginLeft="20dp"/>
+            android:text="@string/Zero"
+            android:layout_marginStart="20dp"/>
 
         <TextView
             android:id="@+id/remaining"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0:00"
-            android:layout_marginLeft="220dp"/>
+            android:text="@string/Zero"
+            android:layout_marginStart="220dp"/>
     </LinearLayout>
 
     <Button
