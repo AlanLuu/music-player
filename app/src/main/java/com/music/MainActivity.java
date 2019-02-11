@@ -16,11 +16,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -57,30 +56,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        /*
+            Local variables defined in enclosing scopes must be final or effectively final,
+            so an array with a single element is used instead.
+        */
+        int[] id = new int[1];
         map.put("Sort", new LinkedHashMap<Integer, String>() {{
             String[] items = {
                     "By name ascending",
                     "By name descending",
                     "Randomly",
             };
-            for (int i = 0; i < items.length; i++) {
-                put(i, items[i]);
+            for (String item : items) {
+                put(id[0]++, item);
             }
         }});
+        map.put("Play random song", null);
+        map.put("About this app", null);
 
-        List<SubMenu> menus = new ArrayList<>();
-        int i = 0;
         for (Map.Entry<String, Map<Integer, String>> entry : map.entrySet()) {
-            menus.add(menu.addSubMenu(entry.getKey()));
-            for (Map.Entry<Integer, String> innerEntry : entry.getValue().entrySet()) {
-                menus.get(i).add(Menu.NONE, innerEntry.getKey(), Menu.NONE, innerEntry.getValue());
+            if (entry.getValue() == null) {
+                menu.add(Menu.NONE, id[0]++, Menu.NONE, entry.getKey());
+                continue;
             }
-            i++;
+            SubMenu subMenu = menu.addSubMenu(entry.getKey());
+            for (Map.Entry<Integer, String> innerEntry : entry.getValue().entrySet()) {
+                subMenu.add(Menu.NONE, innerEntry.getKey(), Menu.NONE, innerEntry.getValue());
+            }
         }
 
-        menu.add(Menu.NONE, 3, Menu.NONE, "About this app");
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -98,6 +105,9 @@ public class MainActivity extends AppCompatActivity {
                     songs.shuffle();
                     break;
                 case 3:
+                    playSong((int) (Math.random() * songs.size()));
+                    break;
+                case 4:
                     startActivity(new Intent(this, AppInfoActivity.class));
                     break;
             }
@@ -114,17 +124,19 @@ public class MainActivity extends AppCompatActivity {
         SongAdapter adapter = new SongAdapter(this, songs.getPlaylist());
         songView.setAdapter(adapter);
 
-        songView.setOnItemClickListener((adapterView, view, position, id) -> {
-            Intent intent = new Intent(getApplicationContext(), MusicActivity.class);
-            intent.putExtra("Song", songs.get(position).getArtist() + " - " + songs.get(position).getTitle());
-            intent.putExtra("Id", songs.get(position).getId() + "");
-            startActivity(intent);
-        });
+        songView.setOnItemClickListener((adapterView, view, position, id) -> playSong(position));
 
         songView.setOnItemLongClickListener((adapterView, view, position, id) -> {
             Toast.makeText(getApplicationContext(), songs.get(position) + "", Toast.LENGTH_SHORT).show();
             return true;
         });
+    }
+
+    private void playSong(int position) {
+        Intent intent = new Intent(getApplicationContext(), MusicActivity.class);
+        intent.putExtra("Song", songs.get(position).getArtist() + " - " + songs.get(position).getTitle());
+        intent.putExtra("Id", songs.get(position).getId() + "");
+        startActivity(intent);
     }
 
     private void getSongList() {
