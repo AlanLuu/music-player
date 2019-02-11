@@ -104,7 +104,11 @@ public class MainActivity extends AppCompatActivity {
                     songs.shuffle();
                     break;
                 case 3:
-                    playSong((int) (Math.random() * songs.size()));
+                    if (songs.size() > 0) {
+                        playSong((int) (Math.random() * songs.size()));
+                    } else {
+                        Toast.makeText(getApplicationContext(), "You don't have any songs!", Toast.LENGTH_SHORT).show();
+                    }
                     break;
                 case 4:
                     startActivity(new Intent(this, AppInfoActivity.class));
