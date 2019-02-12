@@ -14,7 +14,7 @@ public class SongAdapter extends BaseAdapter {
     private List<Song> songs;
     private LayoutInflater songInf;
 
-    SongAdapter(Context context, List<Song> songs) {
+    public SongAdapter(Context context, List<Song> songs) {
         this.songs = songs;
         songInf = LayoutInflater.from(context);
     }

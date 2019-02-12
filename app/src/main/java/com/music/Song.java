@@ -1,7 +1,7 @@
 package com.music;
 
 /**
- * A boilerplate song class that contains data about a song.
+ * A boilerplate class that contains data about a song.
  * @author Alan Luu
  */
 public class Song implements Comparable<Song> {
@@ -75,7 +75,6 @@ public class Song implements Comparable<Song> {
      */
     @Override
     public String toString() {
-        return artist + " - " + title + " - " + album + " \nID: 0x" + Integer.toHexString(id).toUpperCase() +
-                ", " + id;
+        return "Title: " + title + "\n\nArtist: " + artist + "\n\nAlbum: " + album;
     }
 }
