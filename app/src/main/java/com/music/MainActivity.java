@@ -27,18 +27,23 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     private Playlist songs = new Playlist();
     private Map<String, Map<Integer, String>> map = new LinkedHashMap<>();
+    private ListView songView;
 
-    private static final int REQUEST_PERMISSION = 1;
     private static Mode mode = Mode.ASCENDING;
+
+    private static final String[] PERMISSIONS = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+    private static final int REQUEST_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M &&
-                checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
+        if (!hasPermissions(PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_PERMISSION);
             return;
         }
         start();
@@ -49,10 +54,10 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //Permission granted
+                //Permissions granted
                 start();
             } else {
-                //Permission not granted
+                //Permissions not granted
                 Toast.makeText(getApplicationContext(), "You must enable the storage permission for this app to work.", Toast.LENGTH_LONG).show();
                 finish();
             }
@@ -121,13 +126,13 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(this, AppInfoActivity.class));
                     break;
             }
-            ((ListView) findViewById(R.id.song_list)).setAdapter(new SongAdapter(this, songs.getPlaylist()));
+            ((ListView) findViewById(R.id.song_list)).setAdapter(new SongAdapter(this, songs));
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void start() {
-        ListView songView = findViewById(R.id.song_list);
+        songView = findViewById(R.id.song_list);
         getSongList();
         switch (mode) {
             case ASCENDING:
@@ -141,16 +146,13 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
-        SongAdapter adapter = new SongAdapter(this, songs.getPlaylist());
-        songView.setAdapter(adapter);
-
         songView.setOnItemClickListener((adapterView, view, position, id) -> playSong(position));
 
         songView.setOnItemLongClickListener((adapterView, view, position, id) -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
             builder.setTitle("Options");
 
-            String[] items = {"Play", "Share", "Song info"};
+            String[] items = {"Play", "Share", "Song info", "Delete"};
             builder.setItems(items, (dialogInterface, index) -> {
                 switch (index) {
                     case 0:
@@ -171,6 +173,27 @@ public class MainActivity extends AppCompatActivity {
                         dialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok", (DialogInterface.OnClickListener) null);
                         dialog.show();
                         break;
+                    case 3:
+                        AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
+                        builder1.setTitle("Delete File");
+                        builder1.setMessage(songs.get(position).getTitle() + " will be permanently deleted.");
+                        builder1.setPositiveButton("OK", (dialogInterface1, i) -> {
+                            ContentResolver resolver = getContentResolver();
+                            Cursor cursor = resolver.query(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                    null, null, null, null);
+                            if (cursor != null && cursor.moveToFirst()) {
+                                Uri deleteUri = ContentUris.withAppendedId(
+                                        android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                        songs.get(position).getId());
+                                resolver.delete(deleteUri, null, null);
+                                cursor.close();
+                                getSongList();
+                                Toast.makeText(getApplicationContext(), "File deleted", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        builder1.setNegativeButton("Cancel", null);
+                        builder1.show();
+                        break;
                 }
             });
             builder.create().show();
@@ -179,13 +202,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void playSong(int position) {
-        Intent intent = new Intent(getApplicationContext(), MusicActivity.class);
-        intent.putExtra("Song", songs.get(position).getArtist() + " - " + songs.get(position).getTitle());
-        intent.putExtra("Id", songs.get(position).getId() + "");
-        startActivity(intent);
+        songs.get(position).play(this);
     }
 
     private void getSongList() {
+        songs.clear();
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
@@ -212,7 +233,19 @@ public class MainActivity extends AppCompatActivity {
 
         ActionBar actionBar = getSupportActionBar();
         int size = songs.size();
-        if (actionBar != null) actionBar.setTitle(actionBar.getTitle() + " - " + size + " " + (size == 1 ? "song" : "songs"));
+        if (actionBar != null) actionBar.setTitle("Music - " + size + " " + (size == 1 ? "song" : "songs"));
+
+        SongAdapter adapter = new SongAdapter(this, songs);
+        songView.setAdapter(adapter);
+    }
+
+    private boolean hasPermissions(String... permissions) {
+        for (String permission : permissions) {
+            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private enum Mode {

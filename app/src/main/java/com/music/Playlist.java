@@ -19,12 +19,12 @@ public class Playlist {
         songs.remove(song);
     }
 
-    public Song get(int index) {
-        return songs.get(index);
+    public void clear() {
+        songs.clear();
     }
 
-    public List<Song> getPlaylist() {
-        return new ArrayList<>(songs);
+    public Song get(int index) {
+        return songs.get(index);
     }
 
     public int size() {

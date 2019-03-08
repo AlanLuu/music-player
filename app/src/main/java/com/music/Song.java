@@ -1,5 +1,8 @@
 package com.music;
 
+import android.content.Context;
+import android.content.Intent;
+
 /**
  * A boilerplate class that contains data about a song.
  * @author Alan Luu
@@ -54,6 +57,17 @@ public class Song implements Comparable<Song> {
      */
     public int getId() {
         return id;
+    }
+
+    /**
+     * Plays the current song.
+     * @param context the current activity context
+     */
+    public void play(Context context) {
+        Intent intent = new Intent(context, MusicActivity.class);
+        intent.putExtra("Song", artist + " - " + title);
+        intent.putExtra("Id", id + "");
+        context.startActivity(intent);
     }
 
     /**

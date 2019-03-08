@@ -8,20 +8,18 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.List;
-
 public class SongAdapter extends BaseAdapter {
-    private List<Song> songs;
+    private Playlist playlist;
     private LayoutInflater songInf;
 
-    public SongAdapter(Context context, List<Song> songs) {
-        this.songs = songs;
+    public SongAdapter(Context context, Playlist playlist) {
+        this.playlist = playlist;
         songInf = LayoutInflater.from(context);
     }
 
     @Override
     public int getCount() {
-        return songs.size();
+        return playlist.size();
     }
 
     @Override
@@ -41,7 +39,7 @@ public class SongAdapter extends BaseAdapter {
         TextView artistView = songLayout.findViewById(R.id.song_artist);
         TextView albumView = songLayout.findViewById(R.id.song_album);
 
-        Song currentSong = songs.get(pos);
+        Song currentSong = playlist.get(pos);
         songView.setText(currentSong.getTitle());
         artistView.setText(currentSong.getArtist());
         albumView.setText(currentSong.getAlbum());
