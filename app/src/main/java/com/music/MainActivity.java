@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -21,11 +20,14 @@ import android.view.SubMenu;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.music.util.ComparableList;
+import com.music.util.Util;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    private Playlist songs = new Playlist();
+    private ComparableList<Song> songs = new ComparableList<>();
     private Map<String, Map<Integer, String>> map = new LinkedHashMap<>();
     private ListView songView;
 
@@ -35,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-    private static final int REQUEST_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         if (!hasPermissions(PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_PERMISSION);
+            ActivityCompat.requestPermissions(this, PERMISSIONS, Util.REQUEST_PERMISSION);
             return;
         }
         start();
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSION) {
+        if (requestCode == Util.REQUEST_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 //Permissions granted
                 start();
@@ -83,7 +84,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }});
         map.put("Play random song", null);
+        map.put("Refresh", null);
         map.put("About this app", null);
+        map.put("Share this app", null);
 
         for (Map.Entry<String, Map<Integer, String>> entry : map.entrySet()) {
             if (entry.getValue() == null) {
@@ -117,13 +120,21 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 3:
                     if (songs.size() > 0) {
-                        playSong((int) (Math.random() * songs.size()));
+                        playSong(Util.randomInt(0, songs.size() - 1));
                     } else {
                         Toast.makeText(getApplicationContext(), "You don't have any songs!", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 case 4:
+                    getSongList();
+                    songs.sort();
+                    Toast.makeText(getApplicationContext(), "Refreshed", Toast.LENGTH_SHORT).show();
+                    break;
+                case 5:
                     startActivity(new Intent(this, AppInfoActivity.class));
+                    break;
+                case 6:
+                    Util.share(this, "Music", "Hey, come check out this open source music app at " + Util.REPO);
                     break;
             }
             ((ListView) findViewById(R.id.song_list)).setAdapter(new SongAdapter(this, songs));
@@ -167,32 +178,24 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(Intent.createChooser(intent, "Share"));
                         break;
                     case 2:
-                        AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).create();
-                        dialog.setTitle("Song info");
-                        dialog.setMessage(songs.get(position) + "");
-                        dialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok", (DialogInterface.OnClickListener) null);
-                        dialog.show();
+                        Util.alert(MainActivity.this, "Song info", songs.get(position) + "", null);
                         break;
                     case 3:
-                        AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
-                        builder1.setTitle("Delete File");
-                        builder1.setMessage(songs.get(position).getTitle() + " will be permanently deleted.");
-                        builder1.setPositiveButton("OK", (dialogInterface1, i) -> {
-                            ContentResolver resolver = getContentResolver();
-                            Cursor cursor = resolver.query(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                    null, null, null, null);
-                            if (cursor != null && cursor.moveToFirst()) {
-                                Uri deleteUri = ContentUris.withAppendedId(
-                                        android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                        songs.get(position).getId());
-                                resolver.delete(deleteUri, null, null);
-                                cursor.close();
-                                getSongList();
-                                Toast.makeText(getApplicationContext(), "File deleted", Toast.LENGTH_SHORT).show();
-                            }
+                        Util.confirm(MainActivity.this, "Delete",
+                                songs.get(position).getTitle() + " will be permanently deleted.", (dialogInterface1, i) -> {
+                                    ContentResolver resolver = getContentResolver();
+                                    Cursor cursor = resolver.query(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                            null, null, null, null);
+                                    if (cursor != null && cursor.moveToFirst()) {
+                                        Uri deleteUri = ContentUris.withAppendedId(
+                                                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                                songs.get(position).getId());
+                                        resolver.delete(deleteUri, null, null);
+                                        cursor.close();
+                                        getSongList();
+                                        Toast.makeText(getApplicationContext(), "File deleted", Toast.LENGTH_SHORT).show();
+                                    }
                         });
-                        builder1.setNegativeButton("Cancel", null);
-                        builder1.show();
                         break;
                 }
             });
