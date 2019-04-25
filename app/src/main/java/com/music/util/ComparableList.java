@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * An ArrayList where all elements must be a instance of Comparable.
- * Because of this, it provides additional utility methods such as shuffle, sort, and shuffleReverse.
+ * Because of this, it provides additional utility methods such as shuffle, sort, and sortReverse.
  */
 public class ComparableList<E extends Comparable<? super E>> extends ArrayList<E> implements List<E> {
     public ComparableList() {

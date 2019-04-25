@@ -28,6 +28,9 @@ public final class Util {
 
     public static final int REQUEST_PERMISSION = 1;
 
+    /**
+     * Don't even try...
+     */
     private Util() {
         throw new AssertionError("No com.music.util.Util instances for you!");
     }
