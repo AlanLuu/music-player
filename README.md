@@ -12,6 +12,7 @@ Signed release versions can be found [here](https://github.com/AlanLuu/music-pla
 Features include:
 - Playing all kinds of audio files, including, but not limited to: ```.mp3```, ```.m4a```, and ```.wav```
 - Playing a random song from the user's library
+- (Bonus) Generating a random Chuck Norris joke
 
 How to build
 ----------------
