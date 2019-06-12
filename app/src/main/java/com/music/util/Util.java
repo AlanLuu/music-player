@@ -13,13 +13,14 @@ import android.widget.Toast;
 import com.music.BuildConfig;
 import com.music.R;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Provides various static methods and fields to make my life easier.
  */
 public final class Util {
-    public static final String API_ERROR = "Sorry, something happened. Either the server is down, or you're not connected to the internet.";
+    public static final String API_ERROR = "There was an error retrieving the joke. Either the joke generator is down, or you're not connected to the internet.";
     public static final String EMAIL = "alanluu4@gmail.com";
     public static final String EMAIL_ERROR = "There is no email client installed on this device.";
     public static final String INFO = "Music: Version " + BuildConfig.VERSION_NAME;
@@ -42,6 +43,10 @@ public final class Util {
         dialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", listener);
         dialog.setIcon(R.mipmap.ic_launcher);
         dialog.show();
+    }
+
+    public static <T extends Comparable<? super T>> int binarySearch(T[] arr, T target) {
+        return binarySearch(Arrays.asList(arr), target);
     }
 
     public static <T extends Comparable<? super T>> int binarySearch(List<T> list, T target) {

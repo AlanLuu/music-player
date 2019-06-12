@@ -13,9 +13,16 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.music.util.ChuckNorrisJoke;
+import com.music.util.DadJoke;
+import com.music.util.JokeFactory;
 import com.music.util.Util;
 
 public class AppInfoActivity extends AppCompatActivity {
+    private static JokeFactory[] jokes = {
+            new DadJoke(),
+            new ChuckNorrisJoke()
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,7 +47,8 @@ public class AppInfoActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(Menu.NONE, 0, Menu.NONE, "GitHub");
         menu.add(Menu.NONE, 1, Menu.NONE, "Email " + Util.NAME);
-        menu.add(Menu.NONE, 2, Menu.NONE, ChuckNorrisJoke.TITLE);
+        menu.add(Menu.NONE, 2, Menu.NONE, jokes[0].getTitle());
+        menu.add(Menu.NONE, 3, Menu.NONE, jokes[1].getTitle());
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -54,11 +62,18 @@ public class AppInfoActivity extends AppCompatActivity {
                 Util.sendEmail(this, Util.EMAIL, "Music app", Util.versionInfo(this));
                 break;
             case 2:
-                String joke = new ChuckNorrisJoke().getJoke();
-                joke = joke == null ? Util.API_ERROR : joke;
-                Util.alert(AppInfoActivity.this, ChuckNorrisJoke.TITLE, joke, null);
+                showJoke(jokes[0]);
+                break;
+            case 3:
+                showJoke(jokes[1]);
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showJoke(JokeFactory jokeFactory) {
+        String joke = jokeFactory.generateJoke();
+        joke = joke == null ? Util.API_ERROR : joke;
+        Util.alert(this, jokeFactory.getTitle(), joke, null);
     }
 }

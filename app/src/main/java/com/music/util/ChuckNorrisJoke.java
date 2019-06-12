@@ -9,11 +9,9 @@ import java.util.concurrent.ExecutionException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ChuckNorrisJoke {
+public class ChuckNorrisJoke implements JokeFactory {
     private String firstName;
     private String lastName;
-
-    public static final String TITLE = "Random Chuck Norris Joke";
 
     public ChuckNorrisJoke() {
         this("Chuck", "Norris");
@@ -44,7 +42,8 @@ public class ChuckNorrisJoke {
         this.lastName = lastName;
     }
 
-    public String getJoke() {
+    @Override
+    public String generateJoke() {
         RetrieveJSONTask retrieveJSONTask = new RetrieveJSONTask();
         try {
             JSONObject jsonObject = retrieveJSONTask.execute("http://api.icndb.com/jokes/random?firstName=" +
